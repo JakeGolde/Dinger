@@ -7,6 +7,7 @@
 import time
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.sparse import diags
 
 ## Configuration
 
@@ -41,20 +42,22 @@ plt.plot(x,seed,'*')
 plt.xlabel( "x(0)" )
 plt.ylabel( "Psi(x)" )
 plt.title(  "Infinite Square Well Seed Wavefunction" )
-plt.savefig('ISW_seed.png')
+plt.savefig('figures/ISW_seed.png')
 
 
 ## Construct Matrix to calculate psi(t+1)
+
 
 def create_tridiagonal(n, a, b, c):
     '''The function `create_tridiagonal(n, a, b, c)
        constructs an n x n matrix, setting values along the main diagonal (b),
        the upper diagonal (a), and the lower diagonal (c) '''
-
-    matrix = np.zeros((n, n))
-    np.fill_diagonal(matrix, b)
-    np.fill_diagonal(matrix[:-1, 1:], a)
-    np.fill_diagonal(matrix[1:, :-1], c)
+    # np.fill_diagonal does not work for complex numbers
+    # use scipy.spares.diags
+    diagonal  = [b] * n
+    Udiagonal = [a] * ( n-1 )
+    Ldiagonal = [c] * ( n-1 )
+    matrix = diags( [ Udiagonal, diagonal, Ldiagonal ], [ 1, 0, -1], shape=(n,n)).toarray()
     return matrix
 
 # Define the matrix elements
@@ -64,6 +67,7 @@ aLD = (1j/2)*(1/alpha)              # lower diagonal element
 
 # Construct the matrix using function above
 triDiagMat = create_tridiagonal( len(x), aUD, aD, aLD)
+#print( triDiagMat)  #test triDiagMat constructor function
 
 # Calculate the wavefunction at the first timestep (psi_1 )
 psi_1 = np.zeros(len(x))           # initialize psi_1
@@ -76,4 +80,4 @@ plt.plot(x,seed,'*')
 plt.xlabel( "x(1)" )
 plt.ylabel( "Psi(x)" )
 plt.title(  "Infinite Square Well Wavefunction at Fist Time Step" )
-plt.savefig('ISW_psi_1.png')
+plt.savefig('figures/ISW_psi_1.png')
